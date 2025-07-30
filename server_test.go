@@ -69,7 +69,7 @@ func createStreamAndWrite(t *testing.T, conn *quic.Conn, sessionID uint64, data 
 
 func TestServerReorderedUpgradeRequest(t *testing.T) {
 	s := webtransport.Server{
-		H3: http3.Server{TLSConfig: webtransport.TLSConf},
+		H3: &http3.Server{TLSConfig: webtransport.TLSConf},
 	}
 	defer s.Close()
 	connChan := make(chan *webtransport.Session)
@@ -130,7 +130,7 @@ func TestServerReorderedUpgradeRequest(t *testing.T) {
 func TestServerReorderedUpgradeRequestTimeout(t *testing.T) {
 	timeout := scaleDuration(100 * time.Millisecond)
 	s := webtransport.Server{
-		H3:                http3.Server{TLSConfig: webtransport.TLSConf, EnableDatagrams: true},
+		H3:                &http3.Server{TLSConfig: webtransport.TLSConf, EnableDatagrams: true},
 		ReorderingTimeout: timeout,
 	}
 	defer s.Close()
@@ -196,7 +196,7 @@ func TestServerReorderedUpgradeRequestTimeout(t *testing.T) {
 func TestServerReorderedMultipleStreams(t *testing.T) {
 	timeout := scaleDuration(150 * time.Millisecond)
 	s := webtransport.Server{
-		H3:                http3.Server{TLSConfig: webtransport.TLSConf, EnableDatagrams: true},
+		H3:                &http3.Server{TLSConfig: webtransport.TLSConf, EnableDatagrams: true},
 		ReorderingTimeout: timeout,
 	}
 	defer s.Close()
@@ -260,7 +260,7 @@ func TestServerReorderedMultipleStreams(t *testing.T) {
 func TestServerSettingsCheck(t *testing.T) {
 	timeout := scaleDuration(150 * time.Millisecond)
 	s := webtransport.Server{
-		H3:                http3.Server{TLSConfig: webtransport.TLSConf, EnableDatagrams: true},
+		H3:                &http3.Server{TLSConfig: webtransport.TLSConf, EnableDatagrams: true},
 		ReorderingTimeout: timeout,
 	}
 	errChan := make(chan error, 1)
@@ -298,6 +298,6 @@ func TestServerSettingsCheck(t *testing.T) {
 }
 
 func TestImmediateClose(t *testing.T) {
-	s := webtransport.Server{H3: http3.Server{}}
+	s := webtransport.Server{H3: &http3.Server{}}
 	require.NoError(t, s.Close())
 }

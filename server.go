@@ -28,7 +28,7 @@ const (
 )
 
 type Server struct {
-	H3 http3.Server
+	H3 *http3.Server
 
 	// ReorderingTimeout is the maximum time an incoming WebTransport stream that cannot be associated
 	// with a session is buffered. It is also the maximum time a WebTransport connection request is
@@ -160,6 +160,28 @@ func (s *Server) Close() error {
 	s.refCount.Wait()
 	return err
 }
+
+// Shutdown gracefully shuts down the server without interrupting any active connections.
+// The server sends a GOAWAY frame first, then or for all running requests to complete.
+// Shutdown in combination with ListenAndServe may race if it is called before a UDP socket is established.
+// It is recommended to use Serve instead.
+func (s *Server) Shutdown(ctx context.Context) error {
+	// Make sure that ctxCancel is defined.
+	// This is expected to be uncommon.
+	// It only happens if the server is closed without Serve / ListenAndServe having been called.
+	s.initOnce.Do(func() {})
+
+	if s.ctxCancel != nil {
+		s.ctxCancel()
+	}
+	if s.conns != nil {
+		s.conns.Close()
+	}
+	err := s.H3.Shutdown(ctx)
+	s.refCount.Wait()
+	return err
+}
+
 
 func (s *Server) Upgrade(w http.ResponseWriter, r *http.Request) (*Session, error) {
 	if r.Method != http.MethodConnect {
